@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Game } from 'src/models/game';
 
 @Component({
   selector: 'app-game',
@@ -6,13 +7,29 @@ import { Component } from '@angular/core';
   styleUrls: ['./game.component.scss']
 })
 export class GameComponent {
-
+  currentCard: any;
   pickCardAnimation = false;
+  game: Game;
 
-  constructor() {}
+  constructor() {
+    this.newGame();
+  }
+
+  newGame() {
+    this.game = new Game();
+  }
 
   takeCard() {
-    this.pickCardAnimation = true;
+    if (!this.pickCardAnimation) {
+      this.currentCard = this.game.stack.pop();
+      console.log(this.currentCard);
+      this.pickCardAnimation = true;
+
+      setTimeout(() => {
+      this.game.playedCards.push(this.currentCard);
+        this.pickCardAnimation = false;
+      }, 2500);
+    }
   }
 
 }
