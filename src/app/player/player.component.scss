@@ -2,9 +2,11 @@
     width: 300px;
     display: flex;
     align-items: center;
-    background-color: orange;
+    background-color: lightgrey;
     border-bottom-left-radius: 50px;
     border-top-left-radius: 50px;
+    
+    transition: all 1s ease-in-out;
 
     span {
         font-size: 32px;
@@ -12,10 +14,23 @@
     }
 
     img {
-        width: 100px;
-        height: 100px;
+        transition: all 1s ease-in-out;
+        width: 50px;
+        height: 50px;
         object-fit: cover;
         border-radius: 100%;
         background-color: white;
+    }
+}
+
+.player-active{
+    background-color: orange;
+    width: 350px;
+    transition: all 1s ease-in-out;
+
+    img {
+        width: 80px;
+        height: 80px;
+        transition: all 1s ease-in-out;
     }
 }

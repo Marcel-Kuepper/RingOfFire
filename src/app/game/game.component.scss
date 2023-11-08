@@ -42,6 +42,12 @@
     right: 0;
 }
 
+.btn-add {
+    position: absolute;
+    right: 32px;
+    bottom: 32px;
+}
+
 @keyframes pick-card-animation {
     0% {
         transform: scale(1);
