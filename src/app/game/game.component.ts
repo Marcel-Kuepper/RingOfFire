@@ -6,6 +6,7 @@ import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player
 import { Firestore, collectionData, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, limit, orderBy, } from '@angular/fire/firestore';
 import { ActivatedRoute } from '@angular/router';
 import { getDoc, onSnapshot } from "firebase/firestore";
+import { DialogEditPlayerComponent } from '../dialog-edit-player/dialog-edit-player.component';
 
 @Component({
   selector: 'app-game',
@@ -17,20 +18,34 @@ export class GameComponent {
   pickCardAnimation = false;
   game: Game;
   gameOver = false;
+  gameId: string;
+
+  game$: any;
+  game2: any;
+
 
   firestore: Firestore = inject(Firestore);
 
   constructor(private route: ActivatedRoute, public dialog: MatDialog) {
+    this.game$ = collectionData(collection(this.firestore, 'game'));
+    this.game2 = this.game$.subscribe( (list: any[]) => {
+      list.forEach( (element) => {
+        if (element.id == this.gameId){
+        this.game = element}
+      })
+    } )
+
   }
 
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.newGame();
     this.route.params.subscribe(async (params) => {
-      const gameId = params['id'];
-      await this.loadGameFromDatabase(gameId);
-      this.game.id = gameId;
+      this.gameId = params['id'];
+      await this.loadGameFromDatabase(this.gameId);
+      this.game.id = this.gameId;
     });
+
   }
 
   async loadGameFromDatabase(gameId: string) {
@@ -68,8 +83,11 @@ export class GameComponent {
 
   getCleanJSON(game: Game): {} {
     return {
+      id: this.game.id,
       players: this.game.players,
+      player_images: this.game.player_images,
       stack: this.game.stack,
+      pickCardAnimation: this.game.pickCardAnimation,
       playedCards: this.game.playedCards,
       currentPlayer: this.game.currentPlayer,
       currentCard: this.game.currentCard,
@@ -86,6 +104,7 @@ export class GameComponent {
   }
 
   ngOnDestroy() {
+    this.game2.unsubscribe();
   }
 
   newGame() {
@@ -93,7 +112,8 @@ export class GameComponent {
   }
 
   takeCard() {
-    const poppedCard = this.game.stack.pop();
+    if (this.game.players.length >= 2){
+      const poppedCard = this.game.stack.pop();
     if (this.game.stack.length == 0) {
       this.gameOver = true;
     } else if (!this.game.pickCardAnimation) {
@@ -107,12 +127,15 @@ export class GameComponent {
           this.game.currentPlayer =
             this.game.currentPlayer % this.game.players.length;
           this.game.playedCards.push(this.game.currentCard);
-          this.updateGame();
           this.game.pickCardAnimation = false;
+          this.updateGame();
         }, 2000);
       } else {
         console.error('The stack is empty');
       }
+    }
+    } else {
+      this.openDialog();
     }
   }
 
@@ -121,7 +144,22 @@ export class GameComponent {
     dialogRef.afterClosed().subscribe((name: string) => {
       if (name.length > 0) {
         this.game.players.push(name);
-        this.game.player_images.push('1.png');
+        this.game.player_images.push('player0.png');
+        this.updateGame();
+      }
+    });
+  }
+
+  editPlayer(playerId: number) {
+    const dialogRef = this.dialog.open(DialogEditPlayerComponent);
+    dialogRef.afterClosed().subscribe((change: string) => {
+      if (change) {
+        if (change == 'DELETE') {
+          this.game.player_images.splice(playerId, 1);
+          this.game.players.splice(playerId, 1);
+        } else {
+          this.game.player_images[playerId] = change;
+        }
         this.updateGame();
       }
     });
